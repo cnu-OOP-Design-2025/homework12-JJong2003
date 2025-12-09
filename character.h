@@ -34,6 +34,8 @@ public:
 class Knight : public Character {
 public:
     Knight() { description = "Knight"; type = CharacterType::Knight;
+        Logger* logger = Logger::getInstance();
+        logger->log("[Create] Knight");
     }
     int getAttack() const override { return 15; }
     int getSpeed() const override { return 8; }
@@ -43,6 +45,8 @@ public:
 class Wizard : public Character {
 public:
     Wizard() { description = "Wizard"; type = CharacterType::Wizard;
+        Logger* logger = Logger::getInstance();
+        logger->log("[Create] Wizard");
     }
     int getAttack() const override { return 20; }
     int getSpeed() const override { return 10; }
@@ -52,18 +56,20 @@ public:
 class Archer : public Character {
 public:
     Archer() { description = "Archer"; type = CharacterType::Archer;
+        Logger* logger = Logger::getInstance();
+        logger->log("[Create] Archer");
     }
     int getAttack() const override { return 18; }
     int getSpeed() const override { return 15; }
     int getDefense() const override { return 8; }
 };
 
-// Decorator 기본 구조
 class EquipDeco : public Character {
 protected:
     shared_ptr<Character> character;
 public:
     EquipDeco(shared_ptr<Character> c, string item) : character(c) {
+        Logger::getInstance() -> log("[Trying to Equip] " + c->getDescription() + " + " + item);
     }
     virtual ~EquipDeco() { }
 };
@@ -91,7 +97,13 @@ public:
 
 class Staff : public EquipDeco {
 public:
-    Staff(shared_ptr<Character> c) : EquipDeco(c, "Staff") {}
+    Staff(shared_ptr<Character> c) : EquipDeco(c, "Staff") {
+        // character가 wizard가 아닌 경우, invalid_argument 예외 발생
+        if (c->getType() != CharacterType::Wizard) {
+            Logger::getInstance()->log("[Fail to Equip] ");
+            throw std::invalid_argument("Staff requires Wizard");
+        }
+    }
     string getDescription() const override { return character->getDescription() + " + Staff"; }
     int getAttack() const override { return character->getAttack() + 8; }
     int getSpeed() const override { return character->getSpeed(); }
@@ -111,7 +123,13 @@ public:
 
 class Bow : public EquipDeco {
 public:
-    Bow(shared_ptr<Character> c) : EquipDeco(c, "Bow") {}
+    Bow(shared_ptr<Character> c) : EquipDeco(c, "Bow") {
+        // character가 Archer나 Knight가 아닌 경우, invalid_argument 예외를 발생시킵니다.
+        if ( c->getType() != CharacterType::Archer && c->getType() != CharacterType::Knight){
+            Logger::getInstance()->log("[Fail to Equip] ");
+            throw std::invalid_argument("Bow requires Archer or Knight");
+        }
+    }
     string getDescription() const override { return character->getDescription() + " + Bow"; }
     int getAttack() const override { return character->getAttack() + 7; }
     int getSpeed() const override { return character->getSpeed() + 2; }
